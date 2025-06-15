@@ -1,0 +1,20 @@
+# Neovim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Testing
+test/
+tests/
+
+# Documentation build
+doc/tags
