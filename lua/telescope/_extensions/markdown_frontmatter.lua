@@ -113,7 +113,7 @@ local function markdown_frontmatter_search(opts)
         return {
           value = entry.file,
           display = entry.display,
-          ordinal = entry.value .. " " .. entry.file,
+          ordinal = entry.value,
           entry_data = entry,
           filename = entry.file,
           lnum = entry.line,
