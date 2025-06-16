@@ -18,3 +18,4 @@ tests/
 
 # Documentation build
 doc/tags
+.mcp.json
