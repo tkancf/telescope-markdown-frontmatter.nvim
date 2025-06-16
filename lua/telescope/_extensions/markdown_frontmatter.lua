@@ -122,6 +122,15 @@ local function markdown_frontmatter_search(opts)
     },
     previewer = opts.preview and conf.file_previewer(opts) or nil,
     sorter = conf.generic_sorter(opts),
+    layout_strategy = "horizontal",
+    layout_config = {
+      horizontal = {
+        preview_cutoff = 0,
+        preview_width = 0.6,
+      },
+      height = 0.9,
+      width = 0.9,
+    },
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
