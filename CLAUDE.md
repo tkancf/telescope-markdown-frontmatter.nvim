@@ -43,6 +43,26 @@ The plugin accepts these configuration options:
 - `preview`: Enable/disable file preview
 - `prompt_title`: Telescope picker title
 
+## Workflow Rules
+
+When working on this project, Claude should follow this issue-driven development workflow:
+
+### Before Starting Work
+1. Check existing GitHub issues to understand current priorities using `gh issue list`
+2. If no relevant issues exist, create a new issue describing the planned work
+3. Work on issues in priority order (high → medium → low)
+
+### During Work
+1. Update todo list to track progress on issue-related tasks
+2. Follow existing code patterns and conventions
+3. Test changes when applicable
+
+### After Completing Work
+1. Create a pull request with descriptive title and summary
+2. Reference the issue number in the PR description
+3. Request review as needed
+4. Only commit when explicitly asked by the user or after completing a significant task
+
 ## Git Commit Rules
 
 When Claude completes a requested task, it should:
