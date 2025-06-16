@@ -99,7 +99,7 @@ local function markdown_frontmatter_search(opts)
           key = key,
           file = file,
           line = line_nums[key] or 1,
-          display = string.format("[%s] %s (%s)", key, value, file)
+          display = value
         })
       end
     end
