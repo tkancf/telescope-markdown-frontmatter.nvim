@@ -10,6 +10,10 @@ A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for se
 - Support for multiple frontmatter keys
 - Tab support (`<C-t>` to open in new tab)
 
+## Demo
+
+![Demo Screenshot](docs/screenshot.png)
+
 ## Installation
 
 ### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
