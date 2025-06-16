@@ -122,11 +122,12 @@ local function markdown_frontmatter_search(opts)
     },
     previewer = opts.preview and conf.file_previewer(opts) or nil,
     sorter = conf.generic_sorter(opts),
-    layout_strategy = "horizontal",
+    layout_strategy = "vertical",
     layout_config = {
-      horizontal = {
+      vertical = {
         preview_cutoff = 0,
-        preview_width = 0.6,
+        preview_height = 0.6,
+        mirror = true,
       },
       height = 0.9,
       width = 0.9,
