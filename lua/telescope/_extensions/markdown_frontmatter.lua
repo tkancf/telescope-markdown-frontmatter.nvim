@@ -126,8 +126,9 @@ local function markdown_frontmatter_search(opts)
     layout_config = {
       vertical = {
         preview_cutoff = 0,
-        preview_height = 0.6,
-        mirror = true,
+        preview_height = 0.5,
+        mirror = false,
+        prompt_position = "bottom",
       },
       height = 0.9,
       width = 0.9,
