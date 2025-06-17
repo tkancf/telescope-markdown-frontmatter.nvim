@@ -87,9 +87,14 @@ local function markdown_frontmatter_search(opts)
   local config = get_config()
   opts = vim.tbl_deep_extend("force", config, opts)
   
-  -- If a specific field is requested, override the frontmatter_keys
+  -- If specific fields are requested, override the frontmatter_keys
   if opts.field then
-    opts.frontmatter_keys = { opts.field }
+    -- Parse comma-separated fields
+    local fields = {}
+    for field in opts.field:gmatch("[^,]+") do
+      table.insert(fields, vim.trim(field))
+    end
+    opts.frontmatter_keys = fields
     opts.prompt_title = "Markdown Frontmatter: " .. opts.field
   end
   
@@ -100,12 +105,18 @@ local function markdown_frontmatter_search(opts)
     local frontmatter, line_nums = extract_yaml_frontmatter(file, opts.frontmatter_keys)
     if frontmatter and next(frontmatter) then
       for key, value in pairs(frontmatter) do
+        -- Include field name in display when searching multiple fields
+        local display_text = value
+        if #opts.frontmatter_keys > 1 then
+          display_text = string.format("[%s] %s", key, value)
+        end
+        
         table.insert(results, {
           value = value,
           key = key,
           file = file,
           line = line_nums[key] or 1,
-          display = value
+          display = display_text
         })
       end
     end
