@@ -87,6 +87,12 @@ local function markdown_frontmatter_search(opts)
   local config = get_config()
   opts = vim.tbl_deep_extend("force", config, opts)
   
+  -- If a specific field is requested, override the frontmatter_keys
+  if opts.field then
+    opts.frontmatter_keys = { opts.field }
+    opts.prompt_title = "Markdown Frontmatter: " .. opts.field
+  end
+  
   local results = {}
   local files = get_markdown_files(opts)
   
@@ -164,10 +170,30 @@ function M.setup(config)
   M._config = config or {}
 end
 
+-- Wrapper function to handle field arguments
+local function search_with_field(field)
+  return function(opts)
+    opts = opts or {}
+    opts.field = field
+    return markdown_frontmatter_search(opts)
+  end
+end
+
 return telescope.register_extension({
   setup = M.setup,
   exports = {
-    markdown_frontmatter = markdown_frontmatter_search,
+    markdown_frontmatter = function(opts, ...)
+      -- Handle command arguments from :Telescope markdown_frontmatter <field>
+      local args = {...}
+      if #args > 0 and type(args[1]) == "string" then
+        opts = opts or {}
+        opts.field = args[1]
+      end
+      return markdown_frontmatter_search(opts)
+    end,
     search = markdown_frontmatter_search, -- alias
+    -- Direct field accessors for :Telescope markdown_frontmatter title, etc.
+    title = search_with_field("title"),
+    description = search_with_field("description"),
   },
 })
