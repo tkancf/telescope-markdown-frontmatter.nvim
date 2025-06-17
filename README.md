@@ -5,6 +5,8 @@ A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for se
 ## Features
 
 - Search through YAML frontmatter fields (default: `title`)
+- Field-specific search support (e.g., search only titles or descriptions)
+- Search multiple fields simultaneously with comma-separated syntax
 - Preview file contents with automatic scrolling to the frontmatter line
 - Configurable search directories and exclusions
 - Support for multiple frontmatter keys
@@ -49,21 +51,53 @@ use {
 ### Commands
 
 ```vim
+" Search all configured frontmatter keys
 :Telescope markdown_frontmatter
+
+" Search a specific field
+:Telescope markdown_frontmatter title
+:Telescope markdown_frontmatter description
+:Telescope markdown_frontmatter tags
+:Telescope markdown_frontmatter author
+
+" Search multiple fields at once
+:Telescope markdown_frontmatter field=title,description
+:Telescope markdown_frontmatter field=title,tags,author
 ```
 
 ### Lua API
 
 ```lua
+-- Search all configured frontmatter keys
 require("telescope").extensions.markdown_frontmatter.search()
+
+-- Search a specific field
+require("telescope").extensions.markdown_frontmatter.title()
+require("telescope").extensions.markdown_frontmatter.description()
+
+-- Or with custom field
+require("telescope").extensions.markdown_frontmatter.search({ field = "author" })
+
+-- Search multiple fields
+require("telescope").extensions.markdown_frontmatter.search({ field = "title,description" })
 ```
 
 ### Keymaps
 
 ```lua
+-- Search all configured fields
 vim.keymap.set("n", "<leader>fm", function()
   require("telescope").extensions.markdown_frontmatter.search()
 end, { desc = "Find Markdown by frontmatter" })
+
+-- Search specific fields
+vim.keymap.set("n", "<leader>ft", function()
+  require("telescope").extensions.markdown_frontmatter.title()
+end, { desc = "Find Markdown by title" })
+
+vim.keymap.set("n", "<leader>fd", function()
+  require("telescope").extensions.markdown_frontmatter.description()
+end, { desc = "Find Markdown by description" })
 ```
 
 ## Configuration

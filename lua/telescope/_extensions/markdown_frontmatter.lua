@@ -87,6 +87,17 @@ local function markdown_frontmatter_search(opts)
   local config = get_config()
   opts = vim.tbl_deep_extend("force", config, opts)
   
+  -- If specific fields are requested, override the frontmatter_keys
+  if opts.field then
+    -- Parse comma-separated fields
+    local fields = {}
+    for field in opts.field:gmatch("[^,]+") do
+      table.insert(fields, vim.trim(field))
+    end
+    opts.frontmatter_keys = fields
+    opts.prompt_title = "Markdown Frontmatter: " .. opts.field
+  end
+  
   local results = {}
   local files = get_markdown_files(opts)
   
@@ -94,12 +105,18 @@ local function markdown_frontmatter_search(opts)
     local frontmatter, line_nums = extract_yaml_frontmatter(file, opts.frontmatter_keys)
     if frontmatter and next(frontmatter) then
       for key, value in pairs(frontmatter) do
+        -- Include field name in display when searching multiple fields
+        local display_text = value
+        if #opts.frontmatter_keys > 1 then
+          display_text = string.format("[%s] %s", key, value)
+        end
+        
         table.insert(results, {
           value = value,
           key = key,
           file = file,
           line = line_nums[key] or 1,
-          display = value
+          display = display_text
         })
       end
     end
@@ -164,10 +181,24 @@ function M.setup(config)
   M._config = config or {}
 end
 
+-- Wrapper function to handle field arguments
+local function search_with_field(field)
+  return function(opts)
+    opts = opts or {}
+    opts.field = field
+    return markdown_frontmatter_search(opts)
+  end
+end
+
 return telescope.register_extension({
   setup = M.setup,
   exports = {
-    markdown_frontmatter = markdown_frontmatter_search,
+    markdown_frontmatter = function(opts)
+      return markdown_frontmatter_search(opts)
+    end,
     search = markdown_frontmatter_search, -- alias
+    -- Direct field accessors for :Telescope markdown_frontmatter title, etc.
+    title = search_with_field("title"),
+    description = search_with_field("description"),
   },
 })
