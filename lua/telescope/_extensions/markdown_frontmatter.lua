@@ -193,13 +193,7 @@ end
 return telescope.register_extension({
   setup = M.setup,
   exports = {
-    markdown_frontmatter = function(opts, ...)
-      -- Handle command arguments from :Telescope markdown_frontmatter <field>
-      local args = {...}
-      if #args > 0 and type(args[1]) == "string" then
-        opts = opts or {}
-        opts.field = args[1]
-      end
+    markdown_frontmatter = function(opts)
       return markdown_frontmatter_search(opts)
     end,
     search = markdown_frontmatter_search, -- alias
