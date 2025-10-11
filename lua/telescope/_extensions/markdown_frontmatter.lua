@@ -24,13 +24,13 @@ end
 local function get_markdown_files(config)
   local files = {}
   local search_dirs = config.search_dirs
-  
+
   for _, dir in ipairs(search_dirs) do
     local exclude_args = ""
     for _, exclude in ipairs(config.exclude_dirs) do
       exclude_args = exclude_args .. " -not -path '*/" .. exclude .. "/*'"
     end
-    
+
     local cmd = string.format("find %s -type f -name '*.md'%s", dir, exclude_args)
     local handle = io.popen(cmd)
     if handle then
@@ -41,44 +41,96 @@ local function get_markdown_files(config)
       end
     end
   end
-  
+
   return files
 end
 
 local function extract_yaml_frontmatter(file, keys)
   local f = io.open(file, "r")
   if not f then return nil end
-  
+
   local content = f:read("*all")
   f:close()
-  
+
   local in_frontmatter = false
   local frontmatter_data = {}
   local line_nums = {}
   local current_line = 0
-  
+  local collecting_list = false
+  local current_key = nil
+  local list_values = {}
+
   for line in content:gmatch("[^\n]+") do
     current_line = current_line + 1
-    
+
     if line:match("^---$") then
       if in_frontmatter then
+        -- End of frontmatter, finish collecting any list
+        if collecting_list and current_key then
+          frontmatter_data[current_key] = table.concat(list_values, ", ")
+          line_nums[current_key] = line_nums[current_key] or current_line
+        end
         break
       else
         in_frontmatter = true
       end
     elseif in_frontmatter then
+      -- If we were collecting a list and this line isn't a list item, finish collection
+      if collecting_list and not line:match("^%s*%-") then
+        if current_key then
+          frontmatter_data[current_key] = table.concat(list_values, ", ")
+          line_nums[current_key] = line_nums[current_key] or current_line
+        end
+        collecting_list = false
+        current_key = nil
+        list_values = {}
+      end
+
       for _, key in ipairs(keys) do
+        -- Check for standard key-value pair
         local pattern = "^" .. key .. ":%s*(.+)"
         local value = line:match(pattern)
         if value then
+          -- If we were collecting a list for another key, finish it
+          if collecting_list and current_key then
+            frontmatter_data[current_key] = table.concat(list_values, ", ")
+            line_nums[current_key] = line_nums[current_key] or current_line
+          end
+
+          collecting_list = false
+          current_key = nil
+          list_values = {}
+
+          -- Process the value
           value = value:gsub("^[\"']", ""):gsub("[\"']$", "")
           frontmatter_data[key] = value
           line_nums[key] = current_line
+        elseif line:match("^" .. key .. ":%s*$") then
+          -- Key with no value on same line, might be a list
+          if collecting_list and current_key then
+            frontmatter_data[current_key] = table.concat(list_values, ", ")
+            line_nums[current_key] = line_nums[current_key] or current_line
+          end
+
+          collecting_list = true
+          current_key = key
+          list_values = {}
+          line_nums[key] = current_line
+        end
+      end
+
+      -- If collecting a list, check for list items
+      if collecting_list and current_key then
+        local list_item = line:match("^%s*-%s*(.+)")
+        if list_item then
+          -- Clean up the list item value
+          list_item = list_item:gsub("^[\"']", ""):gsub("[\"']$", "")
+          table.insert(list_values, list_item)
         end
       end
     end
   end
-  
+
   return frontmatter_data, line_nums
 end
 
@@ -86,7 +138,7 @@ local function markdown_frontmatter_search(opts)
   opts = opts or {}
   local config = get_config()
   opts = vim.tbl_deep_extend("force", config, opts)
-  
+
   -- If specific fields are requested, override the frontmatter_keys
   if opts.field then
     -- Parse comma-separated fields
@@ -97,10 +149,10 @@ local function markdown_frontmatter_search(opts)
     opts.frontmatter_keys = fields
     opts.prompt_title = "Markdown Frontmatter: " .. opts.field
   end
-  
+
   local results = {}
   local files = get_markdown_files(opts)
-  
+
   for _, file in ipairs(files) do
     local frontmatter, line_nums = extract_yaml_frontmatter(file, opts.frontmatter_keys)
     if frontmatter and next(frontmatter) then
@@ -110,7 +162,7 @@ local function markdown_frontmatter_search(opts)
         if #opts.frontmatter_keys > 1 then
           display_text = string.format("[%s] %s", key, value)
         end
-        
+
         table.insert(results, {
           value = value,
           key = key,
@@ -121,7 +173,7 @@ local function markdown_frontmatter_search(opts)
       end
     end
   end
-  
+
   pickers.new(opts, {
     prompt_title = opts.prompt_title,
     finder = finders.new_table {
@@ -157,21 +209,21 @@ local function markdown_frontmatter_search(opts)
         vim.cmd('edit ' .. selection.value)
         vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
       end)
-      
+
       map('i', '<C-t>', function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         vim.cmd('tabedit ' .. selection.value)
         vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
       end)
-      
+
       map('n', '<C-t>', function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         vim.cmd('tabedit ' .. selection.value)
         vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
       end)
-      
+
       return true
     end,
   }):find()
@@ -200,5 +252,6 @@ return telescope.register_extension({
     -- Direct field accessors for :Telescope markdown_frontmatter title, etc.
     title = search_with_field("title"),
     description = search_with_field("description"),
+    tags = search_with_field("tags"),
   },
 })
