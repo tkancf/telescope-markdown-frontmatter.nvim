@@ -1,6 +1,10 @@
-# telescope-markdown-frontmatter.nvim
+# nvim-telescope-frontmatter
 
-A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for searching through YAML frontmatter in Markdown files.
+This is a fork of tkancf/telescope-markdown-frontmatter.nvim. This fork focuses on:
+- Generalizing the plugin to search any filetype with a frontmatter.
+- Extending the configuration.
+
+A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for searching through YAML frontmatter in files like files and AsciiDoc.
 
 ## Features
 
@@ -12,22 +16,18 @@ A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for se
 - Support for multiple frontmatter keys
 - Tab support (`<C-t>` to open in new tab)
 
-## Demo
-
-![Demo Screenshot](docs/screenshot.png)
-
 ## Installation
 
 ### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 {
-  "tkancf/telescope-markdown-frontmatter.nvim",
+  "quin-shanley/nvim-telescope-frontmatter",
   dependencies = {
     "nvim-telescope/telescope.nvim",
   },
   config = function()
-    require("telescope").load_extension("markdown_frontmatter")
+    require("telescope").load_extension("frontmatter")
   end,
 }
 ```
@@ -36,12 +36,12 @@ A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for se
 
 ```lua
 use {
-  "tkancf/telescope-markdown-frontmatter.nvim",
+  "quin-shanley/nvim-telescope-frontmatter",
   requires = {
     "nvim-telescope/telescope.nvim",
   },
   config = function()
-    require("telescope").load_extension("markdown_frontmatter")
+    require("telescope").load_extension("frontmatter")
   end,
 }
 ```
@@ -52,34 +52,34 @@ use {
 
 ```vim
 " Search all configured frontmatter keys
-:Telescope markdown_frontmatter
+:Telescope frontmatter
 
 " Search a specific field
-:Telescope markdown_frontmatter title
-:Telescope markdown_frontmatter description
-:Telescope markdown_frontmatter tags
-:Telescope markdown_frontmatter author
+:Telescope frontmatter title
+:Telescope frontmatter description
+:Telescope frontmatter tags
+:Telescope frontmatter author
 
 " Search multiple fields at once
-:Telescope markdown_frontmatter field=title,description
-:Telescope markdown_frontmatter field=title,tags,author
+:Telescope frontmatter field=title,description
+:Telescope frontmatter field=title,tags,author
 ```
 
 ### Lua API
 
 ```lua
 -- Search all configured frontmatter keys
-require("telescope").extensions.markdown_frontmatter.search()
+require("telescope").extensions.frontmatter.search()
 
 -- Search a specific field
-require("telescope").extensions.markdown_frontmatter.title()
-require("telescope").extensions.markdown_frontmatter.description()
+require("telescope").extensions.frontmatter.title()
+require("telescope").extensions.frontmatter.description()
 
 -- Or with custom field
-require("telescope").extensions.markdown_frontmatter.search({ field = "author" })
+require("telescope").extensions.frontmatter.search({ field = "author" })
 
 -- Search multiple fields
-require("telescope").extensions.markdown_frontmatter.search({ field = "title,description" })
+require("telescope").extensions.frontmatter.search({ field = "title,description" })
 ```
 
 ### Keymaps
@@ -87,17 +87,17 @@ require("telescope").extensions.markdown_frontmatter.search({ field = "title,des
 ```lua
 -- Search all configured fields
 vim.keymap.set("n", "<leader>fm", function()
-  require("telescope").extensions.markdown_frontmatter.search()
-end, { desc = "Find Markdown by frontmatter" })
+  require("telescope").extensions.frontmatter.search()
+end, { desc = "Find files by frontmatter" })
 
 -- Search specific fields
 vim.keymap.set("n", "<leader>ft", function()
-  require("telescope").extensions.markdown_frontmatter.title()
-end, { desc = "Find Markdown by title" })
+  require("telescope").extensions.frontmatter.title()
+end, { desc = "Find files by title" })
 
 vim.keymap.set("n", "<leader>fd", function()
-  require("telescope").extensions.markdown_frontmatter.description()
-end, { desc = "Find Markdown by description" })
+  require("telescope").extensions.frontmatter.description()
+end, { desc = "Find files by description" })
 ```
 
 ## Configuration
@@ -107,33 +107,33 @@ end, { desc = "Find Markdown by description" })
 ```lua
 require("telescope").setup({
   extensions = {
-    markdown_frontmatter = {
+    frontmatter = {
       -- Search directories (default: current directory)
       search_dirs = { "~/notes", "~/blog" },
-      
+
       -- Directories to exclude from search
       exclude_dirs = { ".git", "node_modules", ".cache", "dist" },
-      
+
       -- Frontmatter keys to search (can search multiple keys)
       frontmatter_keys = { "title", "description", "tags" },
-      
+
       -- Enable file preview (default: true)
       preview = true,
-      
+
       -- Custom prompt title
-      prompt_title = "Search Markdown Frontmatter",
+      prompt_title = "Searching Frontmatters",
     }
   }
 })
 
 -- Load the extension
-require("telescope").load_extension("markdown_frontmatter")
+require("telescope").load_extension("frontmatter")
 ```
 
 ### Search with runtime options
 
 ```lua
-require("telescope").extensions.markdown_frontmatter.search({
+require("telescope").extensions.frontmatter.search({
   search_dirs = { "~/blog" },
   frontmatter_keys = { "title", "author" },
 })
@@ -159,17 +159,31 @@ date: 2024-01-15
 ...
 ```
 
+## Example AsciiDoc File
+
+```asciidoc
+---
+title: My Amazing Blog Post
+description: A detailed guide about Neovim plugins
+tags: ["neovim", "plugins", "tutorial"]
+author: John Doe
+date: 2024-01-15
+---
+
+= My Amazing Blog Post
+
+== Content starts here
+...
+```
+
 When searching, this file would appear in results for any of the configured frontmatter keys.
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## Acknowledgments
 
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for the amazing fuzzy finder framework
 - Inspired by various Telescope extensions
+- Fork of tkancf/telescope-markdown-frontmatter.nvim

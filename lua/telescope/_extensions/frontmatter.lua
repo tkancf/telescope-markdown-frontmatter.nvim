@@ -13,7 +13,7 @@ local defaults = {
   exclude_dirs = { ".git", "node_modules", ".cache" },
   frontmatter_keys = { "title" },
   preview = true,
-  prompt_title = "Markdown Frontmatter",
+  prompt_title = "Frontmatter Search",
 }
 
 -- Merge user config with defaults
@@ -21,7 +21,7 @@ local function get_config()
   return vim.tbl_deep_extend("force", defaults, M._config or {})
 end
 
-local function get_markdown_files(config)
+local function get_files(config)
   local files = {}
   local search_dirs = config.search_dirs
 
@@ -31,7 +31,7 @@ local function get_markdown_files(config)
       exclude_args = exclude_args .. " -not -path '*/" .. exclude .. "/*'"
     end
 
-    local cmd = string.format("find %s -type f -name '*.md'%s", dir, exclude_args)
+    local cmd = string.format([[find %s -type f \( -name '*.adoc' -o -name '*.md' \)%s]], dir, exclude_args)
     local handle = io.popen(cmd)
     if handle then
       local result = handle:read("*a")
@@ -134,7 +134,7 @@ local function extract_yaml_frontmatter(file, keys)
   return frontmatter_data, line_nums
 end
 
-local function markdown_frontmatter_search(opts)
+local function frontmatter_search(opts)
   opts = opts or {}
   local config = get_config()
   opts = vim.tbl_deep_extend("force", config, opts)
@@ -147,11 +147,11 @@ local function markdown_frontmatter_search(opts)
       table.insert(fields, vim.trim(field))
     end
     opts.frontmatter_keys = fields
-    opts.prompt_title = "Markdown Frontmatter: " .. opts.field
+    opts.prompt_title = "Frontmatter: " .. opts.field
   end
 
   local results = {}
-  local files = get_markdown_files(opts)
+  local files = get_files(opts)
 
   for _, file in ipairs(files) do
     local frontmatter, line_nums = extract_yaml_frontmatter(file, opts.frontmatter_keys)
@@ -207,21 +207,21 @@ local function markdown_frontmatter_search(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         vim.cmd('edit ' .. selection.value)
-        vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
+        vim.api.nvim_win_set_cursor(0, { selection.entry_data.line, 0 })
       end)
 
       map('i', '<C-t>', function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         vim.cmd('tabedit ' .. selection.value)
-        vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
+        vim.api.nvim_win_set_cursor(0, { selection.entry_data.line, 0 })
       end)
 
       map('n', '<C-t>', function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         vim.cmd('tabedit ' .. selection.value)
-        vim.api.nvim_win_set_cursor(0, {selection.entry_data.line, 0})
+        vim.api.nvim_win_set_cursor(0, { selection.entry_data.line, 0 })
       end)
 
       return true
@@ -238,18 +238,18 @@ local function search_with_field(field)
   return function(opts)
     opts = opts or {}
     opts.field = field
-    return markdown_frontmatter_search(opts)
+    return frontmatter_search(opts)
   end
 end
 
 return telescope.register_extension({
   setup = M.setup,
   exports = {
-    markdown_frontmatter = function(opts)
-      return markdown_frontmatter_search(opts)
+    frontmatter = function(opts)
+      return frontmatter_search(opts)
     end,
-    search = markdown_frontmatter_search, -- alias
-    -- Direct field accessors for :Telescope markdown_frontmatter title, etc.
+    search = frontmatter_search, -- alias
+    -- Direct field accessors for :Telescope frontmatter title, etc.
     title = search_with_field("title"),
     description = search_with_field("description"),
     tags = search_with_field("tags"),
